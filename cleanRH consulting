@@ -1,0 +1,307 @@
+go
+use master
+go
+IF NOT EXISTS(SELECT name FROM master.dbo.sysdatabases WHERE NAME = 'ClearRH')
+CREATE DATABASE ClearRH
+
+GO 
+GO 
+
+USE ClearRH
+
+GO
+
+
+--(1) TABLA ROL
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'ROL')
+create table ROL(
+IdRol int primary key identity(1,1),
+Descripcion varchar(60),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+GO
+
+--(2) TABLA ClearRH
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'ClearRH')
+create table ClearRH(
+IdClearRH int primary key identity(1,1),
+Nombre varchar(60),
+RNC varchar(60),
+Direccion varchar(100),
+Telefono varchar(50),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+GO
+
+
+
+--(3) TABLA MENU
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'MENU')
+create table MENU(
+IdMenu int primary key identity(1,1),
+Nombre varchar(60),
+Icono varchar(60),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+GO
+
+--(4) TABLA SUBMENU
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'SUBMENU')
+create table SUBMENU(
+IdSubMenu int primary key identity(1,1),
+IdMenu int references MENU(IdMenu),
+Nombre varchar(60),
+NombreFormulario varchar(60),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+GO
+
+--(5) TABLA USUARIO
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'USUARIO')
+create table USUARIO(
+IdUsuario int primary key identity(1,1),
+Nombres varchar(60),
+Apellidos varchar(60),
+Correo varchar(60),
+Usuario varchar(60),
+Clave varchar(60),
+IdClearRH int references ClearRH(IdClearRH),
+IdRol int references ROL(IdRol),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+GO
+
+--(6) TABLA PERMISOS
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'PERMISOS')
+create table PERMISOS(
+IdPermisos int primary key identity(1,1),
+IdRol int references ROL(IdRol),
+IdSubMenu int references SUBMENU(IdSubMenu),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+--(7) TABLA PROVEEDOR
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'PROVEEDOR')
+create table PROVEEDOR(
+IdProveedor int primary key identity(1,1),
+RNC varchar(50),
+RazonSocial varchar(100),
+Telefono varchar(50),
+Correo varchar(50),
+Direccion varchar(50),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+--(8) TABLA CATEGORIA
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'CATEGORIA')
+create table CATEGORIA(
+IdCategoria int primary key identity(1,1),
+Descripcion varchar(100),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+
+--(8) TABLA Servicio
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'PRODUCTO')
+create table PRODUCTO(
+IdProducto int primary key identity(1,1),
+Codigo varchar(100),
+ValorCodigo int,
+Nombre varchar(100),
+Descripcion varchar(100),
+IdCategoria int references CATEGORIA(IdCategoria),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+
+--(8) TABLA Servico de ClearRH
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'PRODUCTO_TIENDA')
+create table PRODUCTO_TIENDA(
+IdProductoTienda int primary key identity(1,1),
+IdProducto int references PRODUCTO(IdProducto),
+IdClearRH int references ClearRH(IdClearRH),
+PrecioUnidadCompra float default 0,
+PrecioUnidadVenta float default 0,
+Stock bigint default 0,
+Activo bit default 1,
+Iniciado bit default 0,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+--(9) TABLA COMPRA
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'COMPRA')
+create table COMPRA(
+IdCompra int primary key identity(1,1),
+IdUsuario int references USUARIO(IdUsuario),
+IdProveedor int references PROVEEDOR(IdProveedor),
+IdClearRH int references ClearRH(IdClearRH),
+TotalCosto float default 0,
+TipoComprobante varchar(50) default 'Boleta',
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+--(10) TABLA DETALLE_COMPRA
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'DETALLE_COMPRA')
+create table DETALLE_COMPRA(
+IdDetalleCompra int primary key identity(1,1),
+IdCompra int references COMPRA(IdCompra),
+IdProducto int references Producto(IdProducto),
+Cantidad float,
+PrecioUnitarioCompra float,
+PrecioUnitarioVenta float,
+TotalCosto float,
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+-- (10) TABLA CLIENTE
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'CLIENTE')
+create table CLIENTE(
+IdCliente int primary key identity(1,1),
+TipoDocumento varchar(50),
+NumeroDocumento varchar(50),
+Nombre varchar(50),
+Direccion varchar(50),
+Telefono varchar(40),
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go 
+
+-- (11) TABLA FACTURA ClearRH
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'VENTA')
+create table VENTA(
+IdVenta int primary key identity(1,1),
+Codigo varchar(100),
+ValorCodigo int,
+IdTienda int references ClearRH(IdClearRH),
+IdUsuario int references USUARIO(IdUsuario),
+IdCliente int references CLIENTE(IdCliente),
+TipoDocumento varchar(50),
+CantidadProducto int,
+CantidadTotal int,
+TotalCosto  float,
+ImporteRecibido float,
+ImporteCambio float,
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+
+-- (12) TABLA DETALLE_VENTA
+if not exists (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'dbo' AND TABLE_NAME = 'DETALLE_VENTA')
+create table DETALLE_VENTA(
+IdDetalleVenta int primary key identity(1,1),
+IdVenta int references VENTA(IdVenta),
+IdProducto int references PRODUCTO(IdProducto),
+Cantidad int,
+PrecioUnidad float,
+ImporteTotal float,
+Activo bit default 1,
+FechaRegistro datetime default getdate()
+)
+
+go
+
+
+SELECT * FROM CLIENTE
+
+--REGISTROS USUARIO
+insert into usuario(Nombres,Apellidos,Correo,Usuario,Clave,IdClearRH,IdRol)
+values('Raimel','Ramirez','Raimel.Ramirez3@hanes.com','Admin','Admin123',(select TOP 1 IdClearRH from ClearRH where Nombre = 'ClearRH 001'),(select TOP 1 IdRol from ROL where Descripcion = 'ADMINISTRADOR'))
+go
+insert into usuario(Nombres,Apellidos,Correo,Usuario,Clave,IdClearRH,IdRol)
+values('Vanessa ','Reyes','Vanessareyes@gmail.com','Vanessa','Vanessa123',(select TOP 1 IdClearRH from ClearRH where Nombre = 'ClearRH 001'),(select TOP 1 IdRol from ROL where Descripcion = 'EMPLEADO'))
+
+
+GO
+
+insert into CLIENTE(TipoDocumento,NumeroDocumento,Nombre,Direccion,Telefono)
+values
+('RNC','40239230721','Wilkin Ramirez','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Ramon Castillo','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Dayron Alvarado','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Alejandro Hurtado','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Ramirez Perz','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Anival Rosario','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Cabreja Antonio','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Vanessa Reyes','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Eduardo Modesto','AV. George Watchintog','8096751895'),
+('RNC','40239230721','Raimel Ramirez','AV. George Watchintog','8096751895')
+go
+
+
+insert into VENTA(TipoDocumento,CantidadProducto,CantidadTotal)
+values ('RNC','1','1')
+
+
+insert into ClearRH(Nombre,RNC,Direccion,Telefono)
+values ('Daneisy Reyes','00104060736','Abrham Licon','8299339576'),
+		('Rafaela Reyes','00104060736','Abrham Licon','8299339576'),
+		('Raimel Reyes','00104060736','Abrham Licon','8299339576'),
+		('Maria Reyes','00104060736','Abrham Licon','8299339576'),
+		('Vanessa Reyes','00104060736','Abrham Licon','8299339576'),
+		('Wilkin Reyes','00104060736','Abrham Licon','8299339576'),
+		('Atilano Reyes','00104060736','Abrham Licon','8299339576'),
+		('Miledys Reyes','00104060736','Abrham Licon','8299339576'),
+		('Carolan Reyes','00104060736','Abrham Licon','8299339576')
+
+
+
+go
+
+insert into PRODUCTO(Nombre,Descripcion)
+values ('Reclutamiento & Selección','Servicio'),
+		('Contractación','Servicio'),
+		('Capacitación ','Servicio'),
+		('Entrenamiento ','Servicio'),
+		('Evaluaciones De Desempeño ','Servicio'),
+		('Mentoría','Servicio'),
+		('Orientación ','Servicio'),
+		('Perfol Profesional','Servicio'),
+		('Reclutamiento & Selección','Servicio'),
+		('Reclutamiento & Selección','Servicio')
+go 
+
+
+
+select * from USUARIO
+
+Select * from VENTA
+
+SELECT * FROM CLIENTE
+
+SELECT * FROM ClearRH
+
+SELECT * From PRODUCTO
